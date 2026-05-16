@@ -1,73 +1,128 @@
-# React + TypeScript + Vite
+# Notification App — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript frontend that fetches, filters, sorts, and paginates notifications from a protected REST API, with built-in logging middleware.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Fetch notifications from a Bearer Token–protected API
+- Priority-based sorting: **Placement → Result → Event**
+- Timestamp-based sorting (latest first within same priority)
+- Filter notifications by type
+- Pagination via `limit` and `page` query parameters
+- Read / Unread indication per notification
+- Custom logging middleware for API calls, interactions, and errors
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Layer | Tool |
+|---|---|
+| Framework | React 18 (TypeScript) |
+| Build Tool | Vite |
+| Data Fetching | Fetch API |
+| State Management | React Hooks (`useState`, `useEffect`) |
+| Logging | Custom middleware (`utils/logger.ts`) |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Project Structure
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+notification-app-frontend/
+├── README.md
+├── screenshots/
+│   ├── ui.png
+│   ├── network.png
+│   └── logs.png
+├── src/
+│   ├── App.tsx
+│   ├── types.ts
+│   ├── config.ts
+│   └── utils/
+│       └── logger.ts
+├── index.html
+├── package.json
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Authentication
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+All API requests use a **Bearer Token** passed via the `Authorization` header:
+
 ```
+Authorization: Bearer <YOUR_TOKEN>
+```
+
+The token is configured in `src/config.ts`.
+
+---
+
+## Run Locally
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+App runs at → **http://localhost:5173**
+
+---
+
+## Approach
+
+### API Handling
+
+Requests are made to a protected endpoint with query parameters:
+
+| Parameter | Description |
+|---|---|
+| `limit` | Number of notifications per page |
+| `page` | Current page number (1-indexed) |
+| `notification_type` | Filter by type (`placement`, `result`, `event`) |
+
+### Sorting Logic
+
+Notifications are sorted in two passes:
+
+1. **Priority sort** — `Placement` > `Result` > `Event`
+2. **Timestamp sort** — Latest `created_at` first, within the same priority tier
+
+### State Management
+
+All state is managed via React Hooks:
+
+- `notifications` — fetched data array
+- `filter` — active notification type filter
+- `page` / `limit` — pagination state
+- `readIds` — set of notification IDs marked as read
+
+### Logging Middleware
+
+`utils/logger.ts` intercepts and logs:
+
+- Outgoing API requests (URL, params, headers)
+- API responses and errors
+- User interactions (filter changes, page navigation, read toggles)
+- State updates
+
+---
+
+## 📸 Screenshots
+
+### 🔹 UI Preview
+![UI Preview](screenshots/ui.png)
+
+### 🔹 Network Logs
+![Network Logs](screenshots/network.png)
+
+### 🔹 Console Logs
+![Console Logs](screenshots/logs.png)
+
